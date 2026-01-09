@@ -1,0 +1,6 @@
+{  
+  "simplelocalbook.signButton.disabled": "无法签名本地记事本",
+  "simplelocalbook.save.success": "已保存本地记事本内容！",
+  "simplelocalbook.save.fail": "保存本地记事本内容失败。请报告给模组作者并附上latest.log文件。",
+  "simplelocalbook.load.fail": "加载本地记事本内容失败！"
+}

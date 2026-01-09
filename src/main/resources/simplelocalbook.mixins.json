@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "xland.mcmod.simplelocalbook.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "MixinBookEditScreen"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

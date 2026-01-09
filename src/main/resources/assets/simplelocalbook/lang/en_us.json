@@ -1,0 +1,6 @@
+{
+  "simplelocalbook.signButton.disabled": "Cannot sign a local notebook",
+  "simplelocalbook.save.success": "Saved local notebook content!",
+  "simplelocalbook.save.fail": "Failed to save notebook content. Please report to the mod author with latest.log.",
+  "simplelocalbook.load.fail": "Failed to load notebook content!"
+}
