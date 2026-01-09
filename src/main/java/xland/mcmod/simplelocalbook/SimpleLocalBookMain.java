@@ -65,6 +65,11 @@ public class SimpleLocalBookMain {
         Path bookPath = null;
         try {
             bookPath = currentWorldBookPath(client);
+            if (Files.notExists(bookPath)) {
+                Files.createDirectories(bookPath.getParent());
+                return WritableBookContent.EMPTY;
+            }
+
             RegistryOps<JsonElement> registryOps = getRegistryOps(client);
             JsonElement encoded;
             try (var reader = Files.newBufferedReader(bookPath)) {

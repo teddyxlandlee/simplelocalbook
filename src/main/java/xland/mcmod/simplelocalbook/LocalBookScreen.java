@@ -22,6 +22,7 @@ public class LocalBookScreen extends BookEditScreen implements LocalBookMarker {
     }
 
     private final ItemStack bookReference;
+    private Button doneButton;
 
     public static LocalBookScreen create(WritableBookContent bookContent) {
         ItemStack book = Items.WRITABLE_BOOK.getDefaultInstance();
@@ -48,6 +49,22 @@ public class LocalBookScreen extends BookEditScreen implements LocalBookMarker {
                 .map(Button.class::cast)
                 .findFirst()
                 .ifPresent(this::invalidateSignButton);
+        this.doneButton = this.renderables.stream()
+                .filter(r -> r instanceof Button button &&
+                        button.getMessage().getContents() instanceof TranslatableContents contents &&
+                        "gui.done".equals(contents.getKey()))
+                .map(Button.class::cast)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public void onClose() {
+        if (this.doneButton == null) {
+            super.onClose();
+        } else {
+            this.doneButton.onPress();
+        }
     }
 
     @Override
