@@ -17,6 +17,7 @@ neoForge {
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    withSourcesJar()
 }
 
 tasks.processResources {
