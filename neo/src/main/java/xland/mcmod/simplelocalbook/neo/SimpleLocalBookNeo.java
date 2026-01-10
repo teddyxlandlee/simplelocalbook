@@ -1,4 +1,4 @@
-package xland.mcmod.simplelocalbook;
+package xland.mcmod.simplelocalbook.neo;
 
 import com.mojang.brigadier.Command;
 import net.minecraft.client.Minecraft;
@@ -7,6 +7,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import xland.mcmod.simplelocalbook.SimpleLocalBookMain;
 
 @Mod(value = SimpleLocalBookMain.MOD_ID, dist = Dist.CLIENT)
 public class SimpleLocalBookNeo {
