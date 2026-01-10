@@ -109,7 +109,7 @@ public class SimpleLocalBookMain {
     private static String currentWorldId(Minecraft client) {
         if (client.hasSingleplayerServer()) {
             IntegratedServer server = client.getSingleplayerServer();
-            Objects.requireNonNull(server);
+            Objects.requireNonNull(server, "client.singleplayerServer is null");
             String rawId = server.getWorldPath(LevelResource.ROOT)
                     .normalize()
                     .getFileName()
@@ -137,7 +137,7 @@ public class SimpleLocalBookMain {
                 .resolve("book_global.json");
     }
 
-    private static RegistryOps<JsonElement> getRegistryOps(Minecraft minecraft) {
-        return RegistryOps.create(JsonOps.INSTANCE, Objects.requireNonNull(minecraft.player).registryAccess());
+    private static RegistryOps<JsonElement> getRegistryOps(Minecraft client) {
+        return RegistryOps.create(JsonOps.INSTANCE, Objects.requireNonNull(client.player, "client.player is null").registryAccess());
     }
 }
