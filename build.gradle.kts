@@ -16,6 +16,11 @@ repositories {
     maven("https://maven.neoforged.net/releases")
 }
 
+dependencies {
+    compileOnly("io.github.llamalad7:mixinextras-common:0.4.1")
+    compileOnly("net.fabricmc:sponge-mixin:0.15.2+mixin.0.8.7")
+}
+
 extensions.configure<net.neoforged.moddevgradle.dsl.NeoForgeExtension>("neoForge") {
     neoFormVersion = project.ext["mappings_version"].toString()
 }
