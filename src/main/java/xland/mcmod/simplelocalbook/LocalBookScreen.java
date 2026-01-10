@@ -15,6 +15,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.WritableBookContent;
 
+import java.util.function.Predicate;
+
 public class LocalBookScreen extends BookEditScreen implements LocalBookMarker {
     private LocalBookScreen(LocalPlayer player, ItemStack book, WritableBookContent bookContent, LocalBookSource bookSource) {
         super(player, book, InteractionHand.OFF_HAND, bookContent);
@@ -45,19 +47,21 @@ public class LocalBookScreen extends BookEditScreen implements LocalBookMarker {
     protected void init() {
         super.init();
         this.children().stream()
-                .filter(r -> r instanceof Button button &&
-                        button.getMessage().getContents() instanceof TranslatableContents contents &&
-                        "book.signButton".equals(contents.getKey()))
+                .filter(filterButtonTranslationKey("book.signButton"))
                 .map(Button.class::cast)
                 .findFirst()
                 .ifPresent(this::invalidateSignButton);
         this.doneButton = this.children().stream()
-                .filter(r -> r instanceof Button button &&
-                        button.getMessage().getContents() instanceof TranslatableContents contents &&
-                        "gui.done".equals(contents.getKey()))
+                .filter(filterButtonTranslationKey("gui.done"))
                 .map(Button.class::cast)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static Predicate<Object> filterButtonTranslationKey(String key) {
+        return r -> r instanceof Button button &&
+                button.getMessage().getContents() instanceof TranslatableContents contents &&
+                key.equals(contents.getKey());
     }
 
     @Override

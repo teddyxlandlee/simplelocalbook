@@ -86,6 +86,9 @@ subprojects {
         }
     }
 
+    group = rootProject.group
+    version = rootProject.version
+
     base {
         archivesName.set("${rootProject.name}-${project.name}")
     }
