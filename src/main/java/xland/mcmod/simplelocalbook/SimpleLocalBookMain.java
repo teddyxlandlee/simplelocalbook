@@ -30,20 +30,24 @@ public class SimpleLocalBookMain {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    public static void openBook(Minecraft client) {
+    public static void openBook(Minecraft client, LocalBookSource bookSource) {
         loadCurrentBookAsync(
                 client,
-                bookContent -> client.setScreen(LocalBookScreen.create(bookContent)),
+                bookContent -> client.setScreen(LocalBookScreen.create(bookContent, bookSource)),
+                bookSource,
                 () -> Minecraft.getInstance().getChatListener().handleSystemMessage(
-                        Component.translatable("simplelocalbook.load.fail").withStyle(ChatFormatting.DARK_RED),
+                        Component.translatableWithFallback(
+                                "simplelocalbook.load.fail",
+                                "Failed to load local notebook content!"
+                        ).withStyle(ChatFormatting.DARK_RED),
                         /*overlay=*/false
                 ));
     }
 
     private static final ExecutorService BOOK_IO_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
-    public static void loadCurrentBookAsync(Minecraft client, Consumer<WritableBookContent> onLoad, Runnable onError) {
-        CompletableFuture.supplyAsync(() -> loadBook(client), BOOK_IO_EXECUTOR)
+    public static void loadCurrentBookAsync(Minecraft client, Consumer<WritableBookContent> onLoad, LocalBookSource bookSource, Runnable onError) {
+        CompletableFuture.supplyAsync(() -> loadBook(client, bookSource), BOOK_IO_EXECUTOR)
                 .thenAccept(c -> client.execute(() -> {
                     if (c != null) {
                         onLoad.accept(c);
@@ -53,18 +57,18 @@ public class SimpleLocalBookMain {
                 }));
     }
 
-    public static void saveCurrentBookAsync(Minecraft client, WritableBookContent bookContent, Runnable onSuccess, Runnable onError) {
-        CompletableFuture.supplyAsync(() -> saveBook(client, bookContent), BOOK_IO_EXECUTOR)
+    public static void saveCurrentBookAsync(Minecraft client, WritableBookContent bookContent, LocalBookSource bookSource, Runnable onSuccess, Runnable onError) {
+        CompletableFuture.supplyAsync(() -> saveBook(client, bookContent, bookSource), BOOK_IO_EXECUTOR)
                 .thenAccept(success -> {
                     Runnable runnable = success ? onSuccess : onError;
                     client.execute(runnable);
                 });
     }
 
-    private static @Nullable WritableBookContent loadBook(Minecraft client) {
+    private static @Nullable WritableBookContent loadBook(Minecraft client, LocalBookSource bookSource) {
         Path bookPath = null;
         try {
-            bookPath = currentWorldBookPath(client);
+            bookPath = bookSource.getFile(client);
             if (Files.notExists(bookPath)) {
                 Files.createDirectories(bookPath.getParent());
                 return WritableBookContent.EMPTY;
@@ -84,10 +88,10 @@ public class SimpleLocalBookMain {
         }
     }
 
-    private static boolean saveBook(Minecraft client, WritableBookContent bookContent) {
+    private static boolean saveBook(Minecraft client, WritableBookContent bookContent, LocalBookSource bookSource) {
         Path bookPath = null;
         try {
-            bookPath = currentWorldBookPath(client);
+            bookPath = bookSource.getFile(client);
             RegistryOps<JsonElement> registryOps = getRegistryOps(client);
             JsonElement encoded = WritableBookContent.CODEC.encodeStart(registryOps, bookContent)
                     .result()
@@ -120,11 +124,17 @@ public class SimpleLocalBookMain {
         }
     }
 
-    private static Path currentWorldBookPath(Minecraft client) {
+    static Path currentWorldBookPath(Minecraft client) {
         return client.gameDirectory.toPath()
                 .resolve("SimpleLocalBook")
                 .resolve(currentWorldId(client))
                 .resolve("book.json");
+    }
+
+    static Path globalBookPath(Minecraft client) {
+        return client.gameDirectory.toPath()
+                .resolve("SimpleLocalBook")
+                .resolve("book_global.json");
     }
 
     private static RegistryOps<JsonElement> getRegistryOps(Minecraft minecraft) {

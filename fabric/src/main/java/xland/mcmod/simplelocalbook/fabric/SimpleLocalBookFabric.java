@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.commands.CommandBuildContext;
+import xland.mcmod.simplelocalbook.LocalBookSource;
 import xland.mcmod.simplelocalbook.SimpleLocalBookMain;
 
 public class SimpleLocalBookFabric {
@@ -17,9 +18,15 @@ public class SimpleLocalBookFabric {
         dispatcher.register(
                 ClientCommandManager.literal("localnotebook")
                         .executes(context -> {
-                            SimpleLocalBookMain.openBook(context.getSource().getClient());
+                            SimpleLocalBookMain.openBook(context.getSource().getClient(), LocalBookSource.WORLD);
                             return Command.SINGLE_SUCCESS;
                         })
+                        .then(ClientCommandManager.literal("global")
+                                .executes(context -> {
+                                    SimpleLocalBookMain.openBook(context.getSource().getClient(), LocalBookSource.GLOBAL);
+                                    return Command.SINGLE_SUCCESS;
+                                })
+                        )
         );
     }
 }

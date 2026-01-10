@@ -16,18 +16,20 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.WritableBookContent;
 
 public class LocalBookScreen extends BookEditScreen implements LocalBookMarker {
-    private LocalBookScreen(LocalPlayer player, ItemStack book, WritableBookContent bookContent) {
+    private LocalBookScreen(LocalPlayer player, ItemStack book, WritableBookContent bookContent, LocalBookSource bookSource) {
         super(player, book, InteractionHand.OFF_HAND, bookContent);
+        this.bookSource = bookSource;
         this.bookReference = book;
     }
 
+    private final LocalBookSource bookSource;
     private final ItemStack bookReference;
     private Button doneButton;
 
-    public static LocalBookScreen create(WritableBookContent bookContent) {
+    public static LocalBookScreen create(WritableBookContent bookContent, LocalBookSource bookSource) {
         ItemStack book = Items.WRITABLE_BOOK.getDefaultInstance();
         book.set(DataComponents.WRITABLE_BOOK_CONTENT, bookContent);
-        return new LocalBookScreen(Minecraft.getInstance().player, book, bookContent);
+        return new LocalBookScreen(Minecraft.getInstance().player, book, bookContent, bookSource);
     }
 
     private void invalidateSignButton(Button button) {
@@ -42,14 +44,14 @@ public class LocalBookScreen extends BookEditScreen implements LocalBookMarker {
     @Override
     protected void init() {
         super.init();
-        this.renderables.stream()
+        this.children().stream()
                 .filter(r -> r instanceof Button button &&
                         button.getMessage().getContents() instanceof TranslatableContents contents &&
                         "book.signButton".equals(contents.getKey()))
                 .map(Button.class::cast)
                 .findFirst()
                 .ifPresent(this::invalidateSignButton);
-        this.doneButton = this.renderables.stream()
+        this.doneButton = this.children().stream()
                 .filter(r -> r instanceof Button button &&
                         button.getMessage().getContents() instanceof TranslatableContents contents &&
                         "gui.done".equals(contents.getKey()))
@@ -72,16 +74,22 @@ public class LocalBookScreen extends BookEditScreen implements LocalBookMarker {
         WritableBookContent component = bookReference.get(DataComponents.WRITABLE_BOOK_CONTENT);
         if (component != null) {
             SimpleLocalBookMain.saveCurrentBookAsync(
-                    Minecraft.getInstance(), component,
+                    Minecraft.getInstance(), component, bookSource,
                     () -> { // onSuccess
                         Minecraft.getInstance().getChatListener().handleSystemMessage(
-                                Component.translatable("simplelocalbook.save.success").withStyle(ChatFormatting.GREEN),
+                                Component.translatableWithFallback(
+                                        "simplelocalbook.save.success",
+                                        "Saved local notebook content!"
+                                ).withStyle(ChatFormatting.GREEN),
                                 /*overlay=*/true
                         );
                     },
                     () -> { // onFail
                         Minecraft.getInstance().getChatListener().handleSystemMessage(
-                                Component.translatable("simplelocalbook.save.fail").withStyle(ChatFormatting.DARK_RED),
+                                Component.translatableWithFallback(
+                                        "simplelocalbook.save.fail",
+                                        "Failed to save local notebook content!"
+                                ).withStyle(ChatFormatting.DARK_RED),
                                 /*overlay=*/false
                         );
                     }
