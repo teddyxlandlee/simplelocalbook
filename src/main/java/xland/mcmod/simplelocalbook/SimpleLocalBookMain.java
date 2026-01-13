@@ -1,5 +1,7 @@
 package xland.mcmod.simplelocalbook;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.net.HostAndPort;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -16,8 +18,10 @@ import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.net.IDN;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -120,8 +124,37 @@ public class SimpleLocalBookMain {
                     .map(ClientPacketListener::getServerData)
                     .orElseThrow(NullPointerException::new)
                     .ip;
+            ip = mapIp(ip);
             return "multiplayer/" + ip;
         }
+    }
+
+    private static final CharMatcher IP_FILENAME_VALID_CHAR = CharMatcher.inRange('0', '9')
+            .or(CharMatcher.is('.'))
+            .or(CharMatcher.inRange('a', 'z'))
+            .or(CharMatcher.is('-'))
+            .or(CharMatcher.is('_'))
+            .precomputed();
+    // Not include '~', as escape char
+
+    private static String mapIp(String ip) throws IllegalArgumentException {
+        var serverAddress = HostAndPort.fromString(ip).withDefaultPort(25565);
+        final int port = serverAddress.getPort();
+        String host = serverAddress.getHost();
+        host = IDN.toASCII(host.trim()).toLowerCase(Locale.ROOT);
+        if (!IP_FILENAME_VALID_CHAR.matchesAllOf(host)) {
+            StringBuilder sb = new StringBuilder(host.length() << 1);
+            for (char c: host.toCharArray()) {
+                if (IP_FILENAME_VALID_CHAR.matches(c)) {
+                    sb.append(c);
+                } else {
+                    sb.append(String.format(Locale.ROOT, "~%04x", (int) c));
+                }
+            }
+            host = sb.toString();
+        }
+
+        return host + '_' + port;
     }
 
     static Path currentWorldBookPath(Minecraft client) {
